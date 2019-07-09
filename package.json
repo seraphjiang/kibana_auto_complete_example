@@ -4,7 +4,7 @@
   "description": "kibana auto complete example plugin",
   "main": "index.js",
   "kibana": {
-    "version": "7.1",
+    "version": "7.1.1",
     "templateVersion": "1.0.0"
   },
   "scripts": {
