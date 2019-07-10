@@ -6,7 +6,7 @@ addAutocompleteProvider('kuery', ({ config, indexPatterns, boolFilter }) => {
       {
         'type': 'field',
         'text': 'customer_first_name ',
-        'description': 'hard code',
+        'description': 'hard code 1',
         'start': 0,
         'end': 1
       },
