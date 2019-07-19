@@ -1,7 +1,29 @@
 import { addAutocompleteProvider } from 'ui/autocomplete_providers';
 console.log('init hack');
+import { fromKueryExpression } from '@kbn/es-query';
+
+const cursorSymbol = '@kuery-cursor@';
+
 addAutocompleteProvider('kuery', ({ config, indexPatterns, boolFilter }) => {
   return function getSuggestions({ query, selectionStart, selectionEnd }) {
+    const cursoredQuery = `${query.substr(0, selectionStart)}${cursorSymbol}${query.substr(selectionEnd)}`;
+
+    let cursorNode;
+    try {
+      cursorNode = fromKueryExpression(cursoredQuery, { cursorSymbol, parseCursor: true });
+    } catch (e) {
+      cursorNode = {};
+    }
+
+    console.log('cursorNode', cursorNode);
+
+    try {
+      const cn = fromKueryExpression(query);
+      console.log('ast', cn);
+    } catch (e) {
+      console.log(e);
+    }
+
     const ret = [
       {
         'type': 'field',
