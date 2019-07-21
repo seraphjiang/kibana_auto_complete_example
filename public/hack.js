@@ -33,12 +33,50 @@ addAutocompleteProvider('kuery', ({ config, indexPatterns, boolFilter }) => {
         text: f.name,
         description: f.displayName,
         start: cursorNode.start,
-        end: cursorNode.end
+        end: cursorNode.start + f.name.length
       };
     });
 
 
-    const ret = fields.filter(f => f.text.includes(cursorNode.text));
+    const ret = [];
+
+    for (let t of cursorNode.suggestionTypes) {
+      switch (t) {
+        case 'field':
+          const f1 = fields.filter(f => f.text.includes(cursorNode.text));
+          ret.push(...f1);
+          console.log(ret);
+          break;
+        case 'conjunction':
+          ret.push({
+            type: 'conjunction',
+            text: ' and ',
+            description: 'and',
+            start: cursorNode.end,
+            end: cursorNode.end + 5
+          });
+          break;
+        case 'operator':
+          ret.push({
+            type: 'operator',
+            text: ':',
+            description: ':',
+            start: cursorNode.end,
+            end: cursorNode.end + 1
+          });
+          break;
+        case 'value':
+          ret.push({
+            type: 'value',
+            text: '123',
+            description: '123',
+            start: cursorNode.end,
+            end: cursorNode.end + 3
+          });
+          break;
+        default:
+      }
+    }
     // const ret = [
     //   {
     //     'type': 'field',
