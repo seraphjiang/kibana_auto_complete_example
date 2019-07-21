@@ -1,8 +1,11 @@
 import { addAutocompleteProvider } from 'ui/autocomplete_providers';
 console.log('init hack');
 import { fromKueryExpression } from '@kbn/es-query';
+// import chrome from '../../chrome';
+import { getSuggestions as getValueSuggestion } from 'ui/value_suggestions';
 
 const cursorSymbol = '@kuery-cursor@';
+// const baseUrl = chrome.addBasePath('/api/kibana/suggestions/values');
 
 addAutocompleteProvider('kuery', ({ config, indexPatterns, boolFilter }) => {
   console.log('config', config);
@@ -33,12 +36,15 @@ addAutocompleteProvider('kuery', ({ config, indexPatterns, boolFilter }) => {
         text: f.name,
         description: f.displayName,
         start: cursorNode.start,
-        end: cursorNode.start + f.name.length
+        end: cursorNode.start + f.name.length,
+        field: f
       };
     });
 
 
     const ret = [];
+    let ret2;
+    const filteredFields = indexPatterns[0].fields.filter(f => f.name === cursorNode.fieldName);
 
     for (let t of cursorNode.suggestionTypes) {
       switch (t) {
@@ -66,25 +72,39 @@ addAutocompleteProvider('kuery', ({ config, indexPatterns, boolFilter }) => {
           });
           break;
         case 'value':
-          ret.push({
-            type: 'value',
-            text: '123',
-            description: '123',
-            start: cursorNode.end,
-            end: cursorNode.end + 3
-          });
-          break;
+          console.log('filteredFields', filteredFields);
+          const query = `${cursorNode.prefix}${cursorNode.suffix}`;
+          const title = filteredFields[0].indexPattern.title;
+          const field = filteredFields[0];
+          return getValueSuggestion(title, field, query, boolFilter)
+            .then(res => {
+              console.log(res);
+
+              const re = res.map(v => {
+                console.log(v);
+                return {
+                  type: 'value',
+                  text: v + ' ',
+                  description: v,
+                  start: cursorNode.end,
+                  end: cursorNode.end + v.length + 1
+                };
+              });
+
+              return re;
+            });
+
+          // ret.push({
+          //   type: 'value',
+          //   text: '123',
+          //   description: '123',
+          //   start: cursorNode.end,
+          //   end: cursorNode.end + 3
+          // });
         default:
       }
     }
     // const ret = [
-    //   {
-    //     'type': 'field',
-    //     'text': 'customer_first_name ',
-    //     'description': 'hard code 1',
-    //     'start': 0,
-    //     'end': 1
-    //   },
     //   {
     //     'type': 'field',
     //     'text': 'customer_full_name.keyword ',
@@ -94,6 +114,8 @@ addAutocompleteProvider('kuery', ({ config, indexPatterns, boolFilter }) => {
     //   }
     // ];
 
-    return Promise.resolve(ret);
+    const ret1 = Promise.resolve(ret);
+
+    return ret1;
   };
 });
